@@ -1,0 +1,51 @@
+name: Windows installer
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Check JavaScript syntax
+        run: |
+          node --check main.js
+          node --check preload.js
+          node --check app.js
+          node --check website/site.js
+          node --check website/sound.js
+      - run: npm run build
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Checksum installer
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash release/Sunset-Paint-Setup.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  Sunset-Paint-Setup.exe" | Set-Content release/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Sunset-Paint-Windows
+          path: |
+            release/Sunset-Paint-Setup.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Prepare draft release for a pushed tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create $env:RELEASE_TAG release/Sunset-Paint-Setup.exe release/SHA256SUMS.txt --draft --verify-tag --generate-notes --title "Sunset Paint $env:RELEASE_TAG"
+    permissions:
+      contents: write

@@ -1,0 +1,17 @@
+node_modules/
+release/
+.artifacts/
+*.log
+*.zip
+*.exe
+*.blockmap
+.check-profile/
+.sound-check-profile/
+.capture-profile/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+desktop.ini
+.openai/

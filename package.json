@@ -1,0 +1,56 @@
+{
+  "name": "sunset-paint",
+  "version": "1.0.0",
+  "description": "A Windows drawing app with deep zoom, smooth brushes, and tactile controls.",
+  "main": "main.js",
+  "author": "Procz8Fox",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win dir",
+    "test": "electron scripts/check.cjs",
+    "test:sound": "electron scripts/check-sound.cjs",
+    "screenshots": "electron scripts/capture-screenshots.cjs",
+    "website": "node scripts/serve-website.cjs"
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "local.sunset.paint",
+    "productName": "Sunset Paint",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "style.css",
+      "app.js",
+      "icon.ico",
+      "LICENSE"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createStartMenuShortcut": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Sunset Paint",
+      "runAfterFinish": false
+    },
+    "artifactName": "Sunset-Paint-Setup.${ext}"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proczdev/SunsetPaint.git"
+  }
+}

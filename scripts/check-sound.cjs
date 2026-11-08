@@ -1,0 +1,10 @@
+const {app,BrowserWindow,ipcMain}=require('electron'),path=require('path'),fs=require('fs'),assert=require('assert');
+const root=path.resolve(__dirname,'..');process.chdir(root);
+app.setPath('userData',path.join(root,'.sound-check-profile'));
+ipcMain.handle('recover',()=>null);ipcMain.handle('autosave',()=>{});
+fs.mkdirSync(path.join(root,'.artifacts'),{recursive:true});
+app.whenReady().then(async()=>{let failed=false;const w=new BrowserWindow({width:1440,height:960,frame:false,show:false,webPreferences:{backgroundThrottling:false,preload:path.join(root,'preload.js')}});const run=c=>w.webContents.executeJavaScript(c,true);try{await w.loadFile(path.join(root,'index.html'));await run('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
+const sound=await run(`(()=>{settings.sound=true;settings.volume=45;clickSound(document.querySelector('#settings'));const a=lastPitch;clickSound(document.querySelector('#save'));const b=lastPitch;settings.sound=false;clickSound(document.querySelector('#open'));const muted=lastPitch===b;settings.sound=true;document.querySelector('#click-volume').value='23';document.querySelector('#click-volume').dispatchEvent(new Event('input'));return {a,b,muted,volume:settings.volume,state:audioContext.state}})()`);
+assert(sound.a!==sound.b&&sound.muted&&sound.volume===23);console.log('PASS: varied click pitch, mute, volume and audio context: '+sound.state);
+await run("settings.volume=45;document.querySelector('#click-volume').value=45;document.querySelector('#click-volume').dispatchEvent(new Event('input'));fit();render()");fs.writeFileSync('.artifacts/preview.png',(await w.webContents.capturePage()).toPNG());await run("document.querySelector('#settings').click();new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))");fs.writeFileSync('.artifacts/settings-preview.png',(await w.webContents.capturePage()).toPNG());
+}catch(e){failed=true;console.error(e)}finally{w.destroy();app.exit(failed?1:0)}});
